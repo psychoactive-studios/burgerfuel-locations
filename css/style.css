@@ -1593,3 +1593,8 @@ html.bf-app body{
     transition:box-shadow .45s cubic-bezier(.22,1,.36,1);
   }
 }
+
+/* store pages (the CMS template): the template's own content and the site
+   footer stay in the page for search engines but give the screen to the
+   locator, as on the list page, which has no footer */
+html.bf-app [data-bf-fallback],html.bf-app [data-bf-fallback]~footer{display:none!important}

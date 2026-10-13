@@ -116,6 +116,7 @@ git commit -am "Roll back to v4" && git tag v7 && git push origin main --tags
 | v19 | Licensed Vanguard CF (Medium/Bold/Heavy) and Salted, subset with Māori macrons; demo DemiBold removed. **Last version before Mapbox (CARTO basemap)** |
 | v20 | Mapbox basemap (BurgerFuel account, URL-restricted token), "View store page" link back in every panel, store names and Next/Previous as real links, store name as the page heading |
 | v21 | "View store page" link removed again; store pages (CMS template) run the locator with that store open, keeping the template's store details in the page for crawlers |
+| v22 | Store pages also hide the site footer (it sits outside the template content), matching the list page |
 
 ### Store pages and store URLs
 

@@ -41,15 +41,16 @@
   /* A store's own page (the Webflow CMS template, /nz/locations/albany)
      keeps that store's details as ordinary page content, tagged
      data-bf-fallback, so search engines and anything that can't run the
-     locator still read them. Hide it while the locator loads; if the
-     locator never comes up, show it again. */
+     locator still read them. Hide it, and the site footer that follows
+     it (the list page has none), while the locator loads; if the
+     locator never comes up, show them again. */
   var host = d.getElementById('bf-locator');
   var path = location.pathname.replace(/\/+$/, '');
   var parent = path.slice(0, path.lastIndexOf('/'));
   var storePage = !!host && (host.hasAttribute('data-store') || /\/locations[^\/]*$/i.test(parent));
   if (d.querySelector('[data-bf-fallback]')) {
     var hide = d.createElement('style');
-    hide.textContent = '[data-bf-fallback]{display:none!important}';
+    hide.textContent = '[data-bf-fallback],[data-bf-fallback]~footer{display:none!important}';
     d.head.appendChild(hide);
     setTimeout(function () {
       if (!d.documentElement.classList.contains('bf-app')) hide.remove();
