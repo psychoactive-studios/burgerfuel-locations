@@ -7,7 +7,7 @@
 <meta name="description" content="Find your nearest BurgerFuel store across New Zealand.">
 <link rel="preload" href="fonts/VanguardCF-Bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/InstrumentSans-400.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="css/style.css?v=19">
+<link rel="stylesheet" href="css/style.css?v=20">
 </head>
 <body data-view="map">
 <div id="bf-locator" data-bf-mounted="1">
@@ -221,7 +221,7 @@
 
       <div class="sheet-grey">
         <div class="sidebar__top">
-          <h2 class="sidebar__name" data-s-name>—</h2>
+          <h1 class="sidebar__name" data-s-name>—</h1>
 
           <div class="statusline">
             <span class="status" data-s-status>
@@ -234,6 +234,10 @@
               <span data-s-next>Closes 9pm</span>
             </span>
           </div>
+
+          <!-- the store's own page (the CMS template): a plain link, so Google
+               keeps finding every store page from the locator -->
+          <a class="btn btn--ghost sidebar__viewstore" data-s-view href="#">View store page</a>
 
         </div>
 
@@ -345,22 +349,22 @@
       </section>
 
       <section class="sheet-sec sheet-more">
-        <button type="button" class="jumpcard jumpcard--next" data-s-next-store>
+        <a class="jumpcard jumpcard--next" data-s-next-store href="#">
           <img class="jumpcard__bg" data-s-next-img alt="" src="">
           <span class="jumpcard__label">
             <span class="jumpcard__kicker" data-s-next-name>Ponsonby</span>
             <span class="jumpcard__title">Next store <svg class="jumpcard__arrow" fill="none" viewBox="0 0 32 32" aria-hidden="true"><path d="M8.60925 16.2456L23.882 16.2456M17.3365 22.7911L23.882 16.2456L17.3365 9.70017" stroke="currentColor" stroke-width="2.18182" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
           </span>
-        </button>
+        </a>
         <!-- desktop: the map is already beside the panel, so the second card
              steps back a store instead of "back to all stores" -->
-        <button type="button" class="jumpcard jumpcard--prev" data-s-prev-store>
+        <a class="jumpcard jumpcard--prev" data-s-prev-store href="#">
           <img class="jumpcard__bg" data-s-prev-img alt="" src="">
           <span class="jumpcard__label">
             <span class="jumpcard__kicker" data-s-prev-name>Ponsonby</span>
             <span class="jumpcard__title"><svg class="jumpcard__arrow jumpcard__arrow--back" fill="none" viewBox="0 0 32 32" aria-hidden="true"><path d="M9 16.4545L24.2727 16.4545M17.7273 23L24.2727 16.4545L17.7273 9.90909" stroke="currentColor" stroke-width="2.18182" stroke-linejoin="round"/></svg> Previous store</span>
           </span>
-        </button>
+        </a>
         <button type="button" class="jumpcard jumpcard--back" data-s-back>
           <img loading="lazy" class="jumpcard__bg" data-bf-src="assets/m/back-map.webp" alt="">
           <span class="jumpcard__label">
@@ -415,7 +419,7 @@
   <li class="storerow">
     <div class="storerow__thumb"><img alt="" loading="lazy"></div>
     <div class="storerow__content">
-      <h2 class="storerow__name"><button type="button" class="storerow__hit"></button></h2>
+      <h2 class="storerow__name"><a class="storerow__hit" href="#"></a></h2>
       <p class="storerow__addr">
         <svg fill="none" class="icon" viewBox="0 0 22 22" aria-hidden="true"><path d="M4.583 9.096c0 4.447 3.891 8.125 5.613 9.535.246.202.371.304.555.356.143.04.354.04.497 0 .184-.052.308-.153.556-.356 1.722-1.41 5.612-5.088 5.612-9.535 0-1.683-.676-3.297-1.879-4.487a6.42 6.42 0 0 0-4.537-1.859c-1.702 0-3.334.669-4.537 1.859a6.32 6.32 0 0 0-1.88 4.487Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M9.166 8.25a1.833 1.833 0 1 0 3.667 0 1.833 1.833 0 0 0-3.667 0Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span></span>
@@ -429,11 +433,11 @@
 
 </div><!-- /#bf-locator -->
 
-<script src="js/config.js?v=19"></script>
-<script src="js/stores-data.js?v=19"></script>
-<script src="js/hours.js?v=19"></script>
-<script src="js/map.js?v=19"></script>
-<script src="js/lightbox.js?v=19"></script>
-<script src="js/app.js?v=19"></script>
+<script src="js/config.js?v=20"></script>
+<script src="js/stores-data.js?v=20"></script>
+<script src="js/hours.js?v=20"></script>
+<script src="js/map.js?v=20"></script>
+<script src="js/lightbox.js?v=20"></script>
+<script src="js/app.js?v=20"></script>
 </body>
 </html>

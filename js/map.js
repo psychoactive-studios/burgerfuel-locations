@@ -163,20 +163,45 @@
       });
   }
 
-  /* ═══════════════════════ MAPLIBRE DRIVER ═══════════════════════ */
-  function createMapLibre(el, opts) {
-    loadCss('https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css');
-    return loadScript('https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js')
+  /* ═════════════════ MAPBOX / MAPLIBRE (GL) DRIVER ═════════════════
+     Mapbox GL JS and MapLibre GL share one API, so one driver serves both:
+       mapbox   — BurgerFuel's Mapbox account (config.mapboxToken), their
+                  stock "Light" map, recoloured to our skin below
+       maplibre — no token: CARTO Positron tiles, recoloured the same way */
+  var GL = {
+    mapbox: {
+      css: 'https://api.mapbox.com/mapbox-gl-js/v3.11.0/mapbox-gl.css',
+      js:  'https://api.mapbox.com/mapbox-gl-js/v3.11.0/mapbox-gl.js',
+      lib: function () { return w.mapboxgl; },
+      style: 'mapbox://styles/mapbox/light-v11'
+    },
+    maplibre: {
+      css: 'https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css',
+      js:  'https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js',
+      lib: function () { return w.maplibregl; },
+      style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json'
+    }
+  };
+  function createMapLibre(el, opts) { return createGL('maplibre', el, opts); }
+  function createGL(kind, el, opts) {
+    var cfg = GL[kind];
+    loadCss(cfg.css);
+    return loadScript(cfg.js)
       .then(function () {
-        var map = new maplibregl.Map({
+        var gl = cfg.lib();
+        if (kind === 'mapbox') gl.accessToken = opts.mapboxToken;
+        var map = new gl.Map({
           container: el,
-          style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
+          style: cfg.style,
           center: [opts.center.lng, opts.center.lat],
           zoom: opts.zoom,
           minZoom: opts.minZoom,
           maxZoom: opts.maxZoom,
-          attributionControl: { compact: true }
+          projection: 'mercator',          // Mapbox v3 would otherwise show a globe zoomed out
+          attributionControl: kind === 'mapbox' ? false : { compact: true }
         });
+        // Mapbox's terms require its attribution (and wordmark, added automatically)
+        if (kind === 'mapbox') map.addControl(new gl.AttributionControl({ compact: true }));
         map.scrollZoom.disable();                // our own wheel zoom below
         smoothWheel(map, el, opts);
         map.dragRotate.disable();
@@ -194,12 +219,12 @@
             map.once('idle', shown);
             setTimeout(shown, 2500);
             res({
-              driver: 'maplibre',
+              driver: kind,
               map: map,
               addMarker: function (store, onClick) {
                 var node = makePin();
                 node.addEventListener('click', function (e) { e.stopPropagation(); onClick(store); });
-                var mk = new maplibregl.Marker({ element: node, anchor: 'bottom' })
+                var mk = new gl.Marker({ element: node, anchor: 'bottom' })
                   .setLngLat([store.lng, store.lat]).addTo(map);
                 labelPin(node, store, onClick);
                 return { el: node, marker: mk, store: store };
@@ -218,7 +243,7 @@
                   map.easeTo({ center: [list[0].lng, list[0].lat], zoom: 13, duration: ms });
                   return;
                 }
-                var b = new maplibregl.LngLatBounds();
+                var b = new gl.LngLatBounds();
                 list.forEach(function (s) { b.extend([s.lng, s.lat]); });
                 map.fitBounds(b, { padding: pad, duration: ms, maxZoom: 14 });
               },
@@ -281,6 +306,7 @@
       if (type === 'background') { set(id, 'background-color', SKIN.land); return; }
 
       if (type === 'fill') {
+        if (/hillshade|shadow/i.test(id))               { set(id, 'fill-opacity', 0); return; }   // Mapbox relief: keep it flat
         if (/water|ocean|sea|river|bay/i.test(id))      set(id, 'fill-color', SKIN.water);
         else if (/park|green|wood|forest|grass|pitch/i.test(id)) set(id, 'fill-color', SKIN.park);
         else if (/building/i.test(id))                  { set(id, 'fill-color', '#e2e2e6'); set(id, 'fill-opacity', 0.9); }
@@ -303,11 +329,11 @@
           set(id, 'text-color', SKIN.waterLabel);
           set(id, 'text-halo-color', 'rgba(0,0,0,0)');
         } else {
-          set(id, 'text-color', /place|city|town|country|state/i.test(id) ? '#2c2e35' : SKIN.label);
+          set(id, 'text-color', /place|city|town|country|state|settlement/i.test(id) ? '#2c2e35' : SKIN.label);
           set(id, 'text-halo-color', SKIN.labelHalo);
           set(id, 'text-halo-width', 1.6);
         }
-        if (/poi|shop|amenity/i.test(id)) {
+        if (/poi|shop|amenity|transit|airport/i.test(id)) {
           try { map.setLayoutProperty(id, 'visibility', 'none'); } catch (e) {}
         }
       }
@@ -317,6 +343,13 @@
   /* ════════════════════════ PUBLIC ════════════════════════ */
   w.BFMap = {
     create: function (el, opts) {
+      if (opts.mapboxToken) {
+        return createGL('mapbox', el, opts).catch(function (err) {
+          console.warn('[BFMap] Mapbox unavailable, falling back to CARTO.', err);
+          el.innerHTML = '';
+          return createMapLibre(el, opts);
+        });
+      }
       if (opts.googleMapsApiKey) {
         return createGoogle(el, opts).catch(function (err) {
           console.warn('[BFMap] Google Maps unavailable, falling back.', err);

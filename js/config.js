@@ -24,6 +24,17 @@ window.BF_CONFIG = {
 
   googleMapsApiKey: '',
 
+  /* A public (pk.…) token from BurgerFuel's Mapbox account. With it the map
+     is Mapbox's "Light" style recoloured to our skin; 50,000 map loads a
+     month are free. Empty = the free CARTO tiles.
+     The token is not kept in this repository: the Webflow page sets it,
+     before loader.js, with
+       <script>window.BF_MAPBOX_TOKEN = 'pk.…';</script>
+     The "Store locator (website)" token is URL-restricted to burgerfuel.com,
+     burgerfuel.co.nz (+www), burgerfuel-staging.webflow.io,
+     psychoactive-studios.github.io and http://localhost:5180. */
+  mapboxToken: window.BF_MAPBOX_TOKEN || '',
+
   // When the query narrows to exactly one store, count down 0.8s in the
   // field and open it. false = never auto-open.
   autoOpenSingle: true,

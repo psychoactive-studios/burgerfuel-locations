@@ -173,13 +173,14 @@ html.bf-app body{
 }
 /* id selector so the renderer's own stylesheet can't unseat the layout */
 #bf-locator #map.map{position:absolute;inset:0;z-index:0;background:#6f7176}   /* the basemap's water, so loading never flashes light */
-#bf-locator #map .maplibregl-canvas{opacity:0;transition:opacity .4s var(--ease)}
-#bf-locator #map.is-ready .maplibregl-canvas{opacity:1}
+#bf-locator #map .maplibregl-canvas,#bf-locator #map .mapboxgl-canvas{opacity:0;transition:opacity .4s var(--ease)}
+#bf-locator #map.is-ready .maplibregl-canvas,#bf-locator #map.is-ready .mapboxgl-canvas{opacity:1}
 #bf-locator .map canvas{outline:none}
 
 /* Google / MapLibre chrome trimmed back to a Google-Maps-like base */
 #bf-locator .map .gm-style-cc,#bf-locator .map .gmnoprint.gm-bundled-control{}
-#bf-locator .maplibregl-ctrl-bottom-left,#bf-locator .maplibregl-ctrl-bottom-right{font-size:calc(var(--u) * .6875)}
+#bf-locator .maplibregl-ctrl-bottom-left,#bf-locator .maplibregl-ctrl-bottom-right,
+#bf-locator .mapboxgl-ctrl-bottom-left,#bf-locator .mapboxgl-ctrl-bottom-right{font-size:calc(var(--u) * .6875)}
 
 /* zoom controls */
 #bf-locator .map-ctrl{
@@ -440,6 +441,7 @@ html.bf-app body{
 /* the name is the row's button; its hit area stretches over the whole card */
 #bf-locator .storerow{position:relative}
 #bf-locator .storerow__hit{
+  display:inline;text-decoration:none;
   font:inherit;color:inherit;text-transform:inherit;text-align:left;
   background:none;border:0;padding:0;cursor:pointer;
 }
@@ -535,6 +537,7 @@ html.bf-app body{
 #bf-locator .btn-close:focus-visible{outline:calc(var(--u) * .1875) solid var(--bf-purple);outline-offset:calc(var(--u) * .1875)}
 
 #bf-locator .sidebar__top{padding:calc(var(--u) * 2.25) var(--sheet-pad) calc(var(--u) * 2)}
+#bf-locator .sidebar__viewstore{margin-top:calc(var(--u) * 1.75);width:100%}
 #bf-locator .sidebar__name{
   font-family:var(--font-display);font-weight:700;
   font-size:calc(var(--u) * 4.25);line-height:.92;letter-spacing:-.005em;

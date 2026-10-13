@@ -114,6 +114,7 @@ git commit -am "Roll back to v4" && git tag v7 && git push origin main --tags
 | v17 | Mobile morph: the flying photo sits inside the sheet under its close button and grab handle, so they unmask with the sheet instead of popping in |
 | v18 | View store button removed (the store panel is the store page on every breakpoint); schema.org Restaurant structured data for the open store, for search results |
 | v19 | Licensed Vanguard CF (Medium/Bold/Heavy) and Salted, subset with Māori macrons; demo DemiBold removed. **Last version before Mapbox (CARTO basemap)** |
+| v20 | Mapbox basemap (BurgerFuel account, URL-restricted token), "View store page" link back in every panel, store names and Next/Previous as real links, store name as the page heading |
 
 ### Store pages and store URLs
 

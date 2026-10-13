@@ -207,12 +207,18 @@
       var img = $('img', li);
       img.src = s.image;
       img.alt = 'BurgerFuel ' + s.name;
-      $('.storerow__hit', li).textContent = s.name;
+      var hit = $('.storerow__hit', li);
+      hit.textContent = s.name;
+      hit.href = storeHref(s.slug);                 // a real link: Google follows it to the store's page
       $('.storerow__addr span', li).textContent = s.address;
       li.dataset.slug = s.slug;
       if (state.selected && state.selected.slug === s.slug) li.classList.add('is-active');
 
-      li.addEventListener('click', function () { select(s, 'list', li); });   // the name's button bubbles here too
+      li.addEventListener('click', function (e) {
+        if (newTabClick(e)) return;                // Ctrl/Cmd/middle-click: let the link open a tab
+        e.preventDefault();
+        select(s, 'list', li);
+      });
       elList.appendChild(li);
     });
 
@@ -441,6 +447,10 @@
     $('[data-s-next]').textContent = st.next.replace(' at ', ' ');
     $('[data-s-next]').parentNode.hidden = !st.next;
 
+    // the store's own page: a normal link, never intercepted
+    $('[data-s-view]').href = (ROUTE ? ROUTE.stores : (CFG.storePageBase || 'https://www.burgerfuel.com/nz/locations')) +
+      '/' + encodeURIComponent(s.slug);
+
     // the store's own order link; hidden when the CMS switches it off
     var order = $('[data-s-order]');
     order.href = s.order || (CFG.orderUrl || 'https://eat.burgerfuel.com/order');
@@ -525,10 +535,12 @@
     $('[data-s-next-img]').src = next.image;
     $('[data-s-next-name]').textContent = next.name;
     $('[data-s-next-store]').setAttribute('aria-label', 'Next store: ' + next.name);
+    $('[data-s-next-store]').href = storeHref(next.slug);
     var prev = nextStore(s, -1);
     $('[data-s-prev-img]').src = prev.image;
     $('[data-s-prev-name]').textContent = prev.name;
     $('[data-s-prev-store]').setAttribute('aria-label', 'Previous store: ' + prev.name);
+    $('[data-s-prev-store]').href = storeHref(prev.slug);
 
     elSheetScroll.scrollTop = 0;
   }
@@ -930,13 +942,13 @@
      indexes: /nz/locations/albany. Opening a sheet moves the address bar
      there (pushState, no reload), closing it returns to the list's
      address, and Back/Forward open and close sheets. The Webflow CMS
-     store template page carries the same embed with the store's slug —
-     <div id="bf-locator" data-store="albany"> — and starts with that
-     sheet open, so a Google result lands on the new design.
+     store pages themselves stay the CMS template's full page design: a
+     visitor arriving from Google or a shared link gets the whole store
+     page, and every panel links to it ("View store page").
 
      Optional attributes on #bf-locator, for the build period when the
      pages live at other addresses:
-       data-store       the store to open on load (template page)
+       data-store       the store to open on load
        data-store-base  where store pages live   (default: see below)
        data-list-url    the list page's address  (default: see below)
      Defaults: on the list page, stores live under its own path; on a
@@ -1003,6 +1015,17 @@
     if (slug) parts.push(slug);
     w.history.replaceState(null, '', w.location.pathname + w.location.search + (parts.length ? '#' + parts.join('&') : ''));
   }
+  /* Every store is reachable through a real <a href> (list names, Next /
+     Previous cards): Google only follows <a> links with an href, so these
+     keep the store pages linked from the locator, as the old list did. A
+     plain click still opens the panel in place. */
+  function storeHref(slug) {
+    return ROUTE ? ROUTE.stores + '/' + encodeURIComponent(slug) : '#' + encodeURIComponent(slug);
+  }
+  function newTabClick(e) {
+    return e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || (e.button && e.button !== 0);
+  }
+
   function storeTitle(slug) {
     var s = STORES.find(function (x) { return x.slug === slug; });
     return s ? 'BurgerFuel ' + s.name + ' | Gourmet Burgers' : LIST_TITLE;
@@ -1735,10 +1758,14 @@
     $('[data-sidebar-close]').addEventListener('click', closeSidebar);
     elScrim.addEventListener('click', closeSidebar);
     $('[data-s-back]').addEventListener('click', closeSidebar);
-    $('[data-s-prev-store]').addEventListener('click', function () {
+    $('[data-s-prev-store]').addEventListener('click', function (e) {
+      if (newTabClick(e)) return;
+      e.preventDefault();
       if (state.selected) select(nextStore(state.selected, -1), 'sheet');
     });
-    $('[data-s-next-store]').addEventListener('click', function () {
+    $('[data-s-next-store]').addEventListener('click', function (e) {
+      if (newTabClick(e)) return;
+      e.preventDefault();
       if (state.selected) select(nextStore(state.selected), 'sheet');
     });
     $('[data-photos-prev]').addEventListener('click', function () { stepPhotos(-1); });
