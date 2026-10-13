@@ -203,7 +203,7 @@
         // Mapbox's terms require its attribution (and wordmark, added automatically)
         if (kind === 'mapbox') map.addControl(new gl.AttributionControl({ compact: true }));
         map.scrollZoom.disable();                // our own wheel zoom below
-        smoothWheel(map, el, opts);
+        var endGlide = smoothWheel(map, el, opts);
         map.dragRotate.disable();
         map.touchZoomRotate.disableRotation();
 
@@ -230,6 +230,7 @@
                 return { el: node, marker: mk, store: store };
               },
               panTo: function (lat, lng, zoom) {
+                endGlide();
                 map.easeTo({
                   center: [lng, lat],
                   zoom: (zoom && map.getZoom() < zoom) ? zoom : map.getZoom(),
@@ -238,6 +239,7 @@
               },
               fitBounds: function (list, pad, instant) {
                 if (!list.length) return;
+                endGlide();
                 var ms = instant ? 0 : 700;
                 if (list.length === 1) {
                   map.easeTo({ center: [list[0].lng, list[0].lat], zoom: 13, duration: ms });
@@ -247,7 +249,7 @@
                 list.forEach(function (s) { b.extend([s.lng, s.lat]); });
                 map.fitBounds(b, { padding: pad, duration: ms, maxZoom: 14 });
               },
-              zoomBy: function (d) { map.zoomTo(map.getZoom() + d, { duration: 250 }); },
+              zoomBy: function (d) { endGlide(); map.zoomTo(map.getZoom() + d, { duration: 250 }); },
               resize: function () { map.resize(); },
               onClick: function (cb) { map.on('click', cb); },
               getZoom: function () { return map.getZoom(); },
@@ -263,22 +265,25 @@
      jumps. Here each notch just moves a target zoom, and every frame the
      map closes ~14% of the gap to it, zooming around the pointer. A spin
      of any speed becomes one continuous, lightly eased zoom. Trackpad
-     scrolls and pinches (ctrl+wheel) feed the same target. */
+     scrolls and pinches (ctrl+wheel) feed the same target.
+
+     The zoom pivots on the map's own `around` option, worked out by the
+     map from its own idea of its size. (It used to pivot by hand on the
+     container's measured size; while a view switch or the sheet was still
+     animating, that disagreed with the map's last-known size, and each
+     frame of a zoom nudged the centre further — the map ran off to the
+     Arctic and the glide never settled.) */
   function smoothWheel(map, el, opts) {
-    var target = null, anchor = null, raf = 0;
-    function zoomAround(z) {
-      var z0 = map.getZoom();
-      if (z === z0) return;
-      var s = Math.pow(2, z - z0);
-      var c = [el.clientWidth / 2, el.clientHeight / 2];
-      // keep the lng/lat under the pointer where it is
-      var centre = map.unproject([anchor[0] + (c[0] - anchor[0]) / s, anchor[1] + (c[1] - anchor[1]) / s]);
-      map.jumpTo({ center: centre, zoom: z });
-    }
+    var target = null, around = null, raf = 0, last = null;
+    function zoomTo(z) { map.easeTo({ zoom: z, around: around, duration: 0 }); }
+    function done() { target = null; raf = 0; last = null; }
     function step() {
-      var d = target - map.getZoom();
-      if (Math.abs(d) < 0.002) { zoomAround(target); target = null; raf = 0; return; }
-      zoomAround(map.getZoom() + d * 0.14);
+      if (target === null) { raf = 0; return; }
+      var z = map.getZoom(), d = target - z;
+      // there, or the map refuses to go further (a zoom limit): settle, never spin
+      if (Math.abs(d) < 0.002 || z === last) { zoomTo(target); done(); return; }
+      last = z;
+      zoomTo(z + d * 0.14);
       raf = requestAnimationFrame(step);
     }
     el.addEventListener('wheel', function (e) {
@@ -286,13 +291,18 @@
       var dy = e.deltaY * (e.deltaMode === 1 ? 40 : e.deltaMode === 2 ? 800 : 1);
       // mouse notches (~100px) at MapLibre's rate; small trackpad deltas and pinches a bit livelier
       var rate = e.ctrlKey ? 1 / 100 : Math.abs(dy) < 40 ? 1 / 220 : 1 / 450;
+      // the map may not have caught up with a layout change yet
+      var box = map.getCanvasContainer().getBoundingClientRect(), cv = map.getCanvas();
+      if (Math.round(box.width) !== cv.clientWidth || Math.round(box.height) !== cv.clientHeight) map.resize();
       var from = target === null ? map.getZoom() : target;
       target = Math.max(opts.minZoom || 0, Math.min(opts.maxZoom || 22, from - dy * rate));
-      var r = el.getBoundingClientRect();
-      anchor = [e.clientX - r.left, e.clientY - r.top];
+      around = map.unproject([e.clientX - box.left, e.clientY - box.top]);
+      last = null;
       map.stop();                              // a running fly/ease gives way
       if (!raf) raf = requestAnimationFrame(step);
     }, { passive: false });
+    // the app moving the camera (a store opening, a region filter) ends the glide
+    return function cancel() { if (raf) cancelAnimationFrame(raf); done(); };
   }
 
   /* Repaint CARTO Positron into the same greyscale skin as the Google style */

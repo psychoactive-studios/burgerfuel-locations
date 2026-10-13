@@ -117,6 +117,7 @@ git commit -am "Roll back to v4" && git tag v7 && git push origin main --tags
 | v20 | Mapbox basemap (BurgerFuel account, URL-restricted token), "View store page" link back in every panel, store names and Next/Previous as real links, store name as the page heading |
 | v21 | "View store page" link removed again; store pages (CMS template) run the locator with that store open, keeping the template's store details in the page for crawlers |
 | v22 | Store pages also hide the site footer (it sits outside the template content), matching the list page |
+| v23 | Fix: wheel zoom could drift the map off (towards the Arctic) and keep fighting input after a view switch or sheet animation; zoom now pivots with the map's own `around` and always settles |
 
 ### Store pages and store URLs
 
