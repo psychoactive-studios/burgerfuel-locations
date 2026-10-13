@@ -5,7 +5,7 @@
    Webflow code never has to either:
 
      <div id="bf-locator"></div>
-     <script src="https://alex-psychoactive.github.io/burgerfuel-locations/loader.js"></script>
+     <script src="https://psychoactive-studios.github.io/burgerfuel-locations/loader.js"></script>
 
    On every page load it asks for version.json (bypassing all caches),
    then loads the stylesheet and the scripts stamped with that version,

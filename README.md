@@ -30,9 +30,9 @@ Then open <http://localhost:5180>. (It's also wired up as the
 
 ## Embedding in Webflow
 
-Live at <https://alex-psychoactive.github.io/burgerfuel-locations/> · working
+Live at <https://psychoactive-studios.github.io/burgerfuel-locations/> · working
 embed demo at
-<https://alex-psychoactive.github.io/burgerfuel-locations/embed-test.html>
+<https://psychoactive-studios.github.io/burgerfuel-locations/embed-test.html>
 (that file is the Webflow setup, verbatim).
 
 The Webflow code is **two lines and never changes**, whatever gets released:
@@ -46,7 +46,7 @@ The Webflow code is **two lines and never changes**, whatever gets released:
 **2 — Page Settings → Before `</body>` tag**
 
 ```html
-<script src="https://alex-psychoactive.github.io/burgerfuel-locations/loader.js"></script>
+<script src="https://psychoactive-studios.github.io/burgerfuel-locations/loader.js"></script>
 ```
 
 Nothing goes in the `<head>`: the loader adds the stylesheet itself.
