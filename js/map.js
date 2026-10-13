@@ -247,7 +247,13 @@
                 }
                 var b = new gl.LngLatBounds();
                 list.forEach(function (s) { b.extend([s.lng, s.lat]); });
-                map.fitBounds(b, { padding: pad, duration: ms, maxZoom: 14 });
+                /* Mapbox keeps fitBounds' padding on the map afterwards, which
+                   shifts every later centre and zoom. Work out the camera with
+                   the padding, then move there with none left behind. */
+                map.setPadding({ top: 0, right: 0, bottom: 0, left: 0 });
+                var cam = map.cameraForBounds(b, { padding: pad, maxZoom: 14 });
+                if (!cam) return;                      // padding wider than the map: stay put
+                map.easeTo({ center: cam.center, zoom: cam.zoom, duration: ms });
               },
               zoomBy: function (d) { endGlide(); map.zoomTo(map.getZoom() + d, { duration: 250 }); },
               resize: function () { map.resize(); },

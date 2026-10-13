@@ -109,7 +109,9 @@
     d.head.appendChild(css);
   }
 
-  fetch(base + 'version.json', { cache: 'no-store' })
+  // the query string gets past GitHub Pages' 10-minute CDN cache too, so a
+  // release reaches visitors as soon as it's published
+  fetch(base + 'version.json?t=' + Date.now(), { cache: 'no-store' })
     .then(function (r) { return r.json(); })
     .then(function (j) { load(j.version); })
     // no version file reachable: load uncached rather than not at all
