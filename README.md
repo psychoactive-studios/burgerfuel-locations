@@ -119,6 +119,7 @@ git commit -am "Roll back to v4" && git tag v7 && git push origin main --tags
 | v22 | Store pages also hide the site footer (it sits outside the template content), matching the list page |
 | v23 | Fix: wheel zoom could drift the map off (towards the Arctic) and keep fighting input after a view switch or sheet animation; zoom now pivots with the map's own `around` and always settles |
 | v24 | Fit-to-stores no longer leaves Mapbox padding on the map (it offset every later zoom and centre); loader always fetches a fresh version.json |
+| v25 | Next / Previous store follow a route through the stores by proximity (north to south, nearby store to nearby store) instead of A–Z; a filter narrows the route to the matching stores |
 
 ### Store pages and store URLs
 

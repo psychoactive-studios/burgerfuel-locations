@@ -541,11 +541,57 @@
     elSheetScroll.scrollTop = 0;
   }
 
-  // next along the list as the visitor currently sees it, wrapping round
+  /* Next / Previous follow a route through every store, top of the North
+     Island to the bottom of the South, each step going to a nearby store:
+     suburb by suburb through Auckland, down through the Waikato and so on.
+     (Pure north-to-south order zigzags between coasts at the same latitude;
+     "nearest store" alone ping-pongs between two neighbours.) Built from
+     the stores' coordinates, so a new CMS store slots into place by itself.
+     Previous is the same route backwards; both wrap round. With a region or
+     search filter on, they step through just those stores, in route order. */
+  var TOUR = null;
+  function storeRoute() {
+    if (TOUR) return TOUR;
+    var pts = STORES.slice();
+    if (pts.length < 3) return (TOUR = pts);
+    // flat-earth distance is plenty over NZ: scale longitude by latitude
+    var k = Math.cos(-41 * Math.PI / 180);
+    function dist(a, b) {
+      var dx = (a.lng - b.lng) * k, dy = a.lat - b.lat;
+      return Math.sqrt(dx * dx + dy * dy);
+    }
+    // greedy walk from the northernmost store, always to the closest unvisited one
+    pts.sort(function (a, b) { return b.lat - a.lat; });
+    var route = [pts.shift()];
+    while (pts.length) {
+      var last = route[route.length - 1], best = 0;
+      for (var i = 1; i < pts.length; i++) if (dist(last, pts[i]) < dist(last, pts[best])) best = i;
+      route.push(pts.splice(best, 1)[0]);
+    }
+    // then untangle it: reverse any stretch that makes the path shorter (2-opt)
+    for (var improved = true, pass = 0; improved && pass < 50; pass++) {
+      improved = false;
+      for (var a = 0; a < route.length - 2; a++) {
+        for (var b = a + 2; b < route.length - 1; b++) {
+          var before = dist(route[a], route[a + 1]) + dist(route[b], route[b + 1]);
+          var after  = dist(route[a], route[b])     + dist(route[a + 1], route[b + 1]);
+          if (after < before - 1e-9) {
+            route = route.slice(0, a + 1).concat(route.slice(a + 1, b + 1).reverse(), route.slice(b + 1));
+            improved = true;
+          }
+        }
+      }
+    }
+    return (TOUR = route);
+  }
   function nextStore(s, step) {
-    var list = visibleStores();
-    if (list.length < 2) list = STORES.slice().sort(function (a, b) { return a.name.localeCompare(b.name, 'en'); });
+    var shown = visibleStores();
+    var keep = {};
+    shown.forEach(function (x) { keep[x.slug] = true; });
+    var list = storeRoute();
+    if (shown.length >= 2) list = list.filter(function (x) { return keep[x.slug]; });
     var i = list.findIndex(function (x) { return x.slug === s.slug; });
+    if (i < 0) { list = storeRoute(); i = list.findIndex(function (x) { return x.slug === s.slug; }); }
     return list[(i + (step || 1) + list.length) % list.length];
   }
 
