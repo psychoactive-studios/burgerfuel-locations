@@ -38,6 +38,39 @@
   ph.textContent = '@media (min-width:48rem){#bf-locator{position:fixed;inset:0;z-index:0;background:#6f7176}}';
   d.head.appendChild(ph);
 
+  /* A store's own page (the Webflow CMS template, /nz/locations/albany)
+     keeps that store's details as ordinary page content, tagged
+     data-bf-fallback, so search engines and anything that can't run the
+     locator still read them. Hide it while the locator loads; if the
+     locator never comes up, show it again. */
+  var host = d.getElementById('bf-locator');
+  var path = location.pathname.replace(/\/+$/, '');
+  var parent = path.slice(0, path.lastIndexOf('/'));
+  var storePage = !!host && (host.hasAttribute('data-store') || /\/locations[^\/]*$/i.test(parent));
+  if (d.querySelector('[data-bf-fallback]')) {
+    var hide = d.createElement('style');
+    hide.textContent = '[data-bf-fallback]{display:none!important}';
+    d.head.appendChild(hide);
+    setTimeout(function () {
+      if (!d.documentElement.classList.contains('bf-app')) hide.remove();
+    }, 10000);
+  }
+
+  /* The store list lives on the list page, as a hidden CMS Collection
+     List. A store page borrows it from there rather than carrying a
+     second copy that would have to be kept in step. If it can't be
+     fetched, the locator falls back to its bundled stores-data.js. */
+  var storeList = Promise.resolve();
+  if (storePage && !d.querySelector('[data-bf-stores]')) {
+    storeList = fetch(host.getAttribute('data-list-url') || parent, { credentials: 'same-origin' })
+      .then(function (r) { return r.ok ? r.text() : ''; })
+      .then(function (html) {
+        var list = new DOMParser().parseFromString(html, 'text/html').querySelector('[data-bf-stores]');
+        if (list) d.body.appendChild(d.importNode(list, true));
+      })
+      .catch(function () { /* bundled data instead */ });
+  }
+
   function load(version) {
     var q = '?v=' + encodeURIComponent(version);
 
@@ -61,13 +94,14 @@
     function scripts() {
       if (started) return;
       started = true;
-      // async=false: all download in parallel but run in this order
-      SCRIPTS.forEach(function (src) {
+      // async=false: all download in parallel but run in this order.
+      // app.js reads the store list as it starts, so wait for it.
+      storeList.then(function () { SCRIPTS.forEach(function (src) {
         var s = d.createElement('script');
         s.src = base + src + q;
         s.async = false;
         d.body.appendChild(s);
-      });
+      }); });
     }
     css.onload = css.onerror = scripts;
     setTimeout(scripts, 3000);   // never let a slow stylesheet hold the page hostage

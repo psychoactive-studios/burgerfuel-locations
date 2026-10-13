@@ -447,10 +447,6 @@
     $('[data-s-next]').textContent = st.next.replace(' at ', ' ');
     $('[data-s-next]').parentNode.hidden = !st.next;
 
-    // the store's own page: a normal link, never intercepted
-    $('[data-s-view]').href = (ROUTE ? ROUTE.stores : (CFG.storePageBase || 'https://www.burgerfuel.com/nz/locations')) +
-      '/' + encodeURIComponent(s.slug);
-
     // the store's own order link; hidden when the CMS switches it off
     var order = $('[data-s-order]');
     order.href = s.order || (CFG.orderUrl || 'https://eat.burgerfuel.com/order');
@@ -942,13 +938,14 @@
      indexes: /nz/locations/albany. Opening a sheet moves the address bar
      there (pushState, no reload), closing it returns to the list's
      address, and Back/Forward open and close sheets. The Webflow CMS
-     store pages themselves stay the CMS template's full page design: a
-     visitor arriving from Google or a shared link gets the whole store
-     page, and every panel links to it ("View store page").
+     store template page carries the same embed and starts with that
+     store's sheet open, so a Google result lands on the new design. The
+     store comes from the address itself (/nz/locations/albany → albany),
+     so the template needs no per-store setup.
 
      Optional attributes on #bf-locator, for the build period when the
      pages live at other addresses:
-       data-store       the store to open on load
+       data-store       the store to open on load (default: from the address)
        data-store-base  where store pages live   (default: see below)
        data-list-url    the list page's address  (default: see below)
      Defaults: on the list page, stores live under its own path; on a
@@ -962,6 +959,8 @@
     var path = w.location.pathname.replace(/\/+$/, '');
     var start = host.getAttribute('data-store');
     var parent = path.slice(0, path.lastIndexOf('/'));
+    // a store's own page: the last part of the address is the store
+    if (!start && /\/locations[^\/]*$/i.test(parent)) start = decodeURIComponent(path.slice(parent.length + 1));
     if (!start && !/\/locations[^\/]*$/i.test(path)) return null;  // not a locations page: hash links
     var list = host.getAttribute('data-list-url') || (start ? parent : path);
     return {
@@ -1026,7 +1025,9 @@
     return e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || (e.button && e.button !== 0);
   }
 
+  var PAGE_TITLE = d.title;     // the CMS's SEO title for the store this page was served for
   function storeTitle(slug) {
+    if (ROUTE && slug === ROUTE.start) return PAGE_TITLE;
     var s = STORES.find(function (x) { return x.slug === slug; });
     return s ? 'BurgerFuel ' + s.name + ' | Gourmet Burgers' : LIST_TITLE;
   }
